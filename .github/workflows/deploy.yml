@@ -44,7 +44,7 @@ jobs:
           key: ${{ secrets.KEY }}
           port: ${{ secrets.PORT }}
           script: |
-            cd /var/www/stud-mgt-sys
+            cd /home/mediaonelyka/stud-mgt-sys
 
             echo "Pulling latest code..."
             git pull origin main
@@ -68,7 +68,4 @@ jobs:
 
             echo "Building frontend assets..."
             npm run build
-
-            echo "Restarting Nginx..."
-            sudo systemctl restart nginx
 

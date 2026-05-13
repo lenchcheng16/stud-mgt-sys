@@ -13,8 +13,11 @@ class StudentController extends Controller
     }
     public function create()
     {
-        return view('students.modals.create');
+        // not needed if you are using modal, but kept for fallback
+        return view('students.create');
     }
+
+
 
     public function store(Request $request)
     {

@@ -29,6 +29,7 @@ jobs:
       - name: Prepare Laravel Environment
         run: |
           cp .env.example .env
+          php artisan key:generate
 
       # 5. Run Laravel Tests
       - name: Run Tests

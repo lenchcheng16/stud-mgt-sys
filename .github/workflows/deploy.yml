@@ -1,0 +1,73 @@
+name: Laravel CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Setup PHP
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.2
+          extensions: mbstring, pdo, mysql, bcmath
+
+      # 3. Install Composer dependencies
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      # 4. Prepare Laravel Environment (CI only)
+      - name: Prepare Laravel Environment
+        run: |
+          cp .env.example .env
+
+      # 5. Run Laravel Tests
+      - name: Run Tests
+        run: php artisan test
+
+      # 6. Deploy to VPS/Server
+      - name: Deploy to Server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }}
+          port: ${{ secrets.PORT }}
+          script: |
+            cd /var/www/stud-mgt-sys
+
+            echo "Pulling latest code..."
+            git pull origin main
+
+            echo "Installing backend dependencies..."
+            composer install --no-interaction --prefer-dist --optimize-autoloader
+
+            echo "Running database migrations..."
+            php artisan migrate --force
+
+            echo "Clearing caches..."
+            php artisan optimize:clear
+
+            echo "Caching Laravel..."
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+
+            echo "Installing frontend dependencies..."
+            npm install
+
+            echo "Building frontend assets..."
+            npm run build
+
+            echo "Restarting Nginx..."
+            sudo systemctl restart nginx
+
